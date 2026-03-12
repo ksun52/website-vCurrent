@@ -25,7 +25,8 @@
 *.pem
 
 # large assets
-public/panorama.jpg
+public/panorama*
+public/old/
 
 # debug
 npm-debug.log*

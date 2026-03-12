@@ -96,7 +96,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     container.appendChild(renderer.domElement);
 
     const loader = new THREE.TextureLoader();
-    loader.load('/panorama.jpg', (texture) => {
+    loader.load('/panorama.png', (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
