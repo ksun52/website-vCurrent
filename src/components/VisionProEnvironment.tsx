@@ -153,8 +153,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const mountRef = useRef<HTMLDivElement>(null);
   const [cameraLon, setCameraLon] = useState(0);
   const [cameraLat, setCameraLat] = useState(0);
-  const [panelState, setPanelState] = useState<PanelState>({ panelLon: 0, panelLat: 0, isPinned: true });
+  const [panelState, setPanelState] = useState<PanelState>({ panelLon: 0, panelLat: 0, isPinned: false });
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
+  const [isHoveringPanel, setIsHoveringPanel] = useState(false);
+  const [showPinTooltip, setShowPinTooltip] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayedPanel, setDisplayedPanel] = useState<PanelType>(activePanel);
   const [animationState, setAnimationState] = useState<'visible' | 'exiting' | 'entering'>('visible');
@@ -168,7 +170,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const cameraLatRef = useRef(0);
   const panelLonRef = useRef(0);
   const panelLatRef = useRef(0);
-  const isPinnedRef = useRef(true);
+  const isPinnedRef = useRef(false);
 
   // Handle panel transitions
   useEffect(() => {
@@ -413,6 +415,12 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     }
   }, []);
 
+  const handleSnapToCenter = useCallback(() => {
+    panelLonRef.current = cameraLonRef.current;
+    panelLatRef.current = cameraLatRef.current;
+    setPanelState(prev => ({ ...prev, panelLon: cameraLonRef.current, panelLat: cameraLatRef.current }));
+  }, []);
+
   const lonDiff = panelState.panelLon - cameraLon;
   const normalizedLonAngle = ((lonDiff % 360) + 540) % 360 - 180;
   const latDiff = panelState.panelLat - cameraLat;
@@ -431,6 +439,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const screenY = panelZ > 0 ? (-latDiff / (verticalFovRad * 180 / Math.PI / 2)) * 50 : 0;
   
   const isVisible = panelZ > 0;
+  
+  // Check if panel is far from center (show snap button when panel is off-screen or nearly off-screen)
+  const isPanelFarFromCenter = !panelState.isPinned && (
+    Math.abs(screenX) > 40 || Math.abs(screenY) > 35 || !isVisible
+  );
 
   const currentContent = panelContent[displayedPanel];
 
@@ -543,52 +556,116 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             transform: getAnimationTransform(),
             opacity: getAnimationOpacity(),
             transition: getAnimationTransition(),
+            outline: isHoveringPanel && !isDraggingPanel && !panelState.isPinned ? '2px solid rgba(60, 50, 40, 0.15)' : 'none',
+            outlineOffset: '4px',
           }}
           onPointerDown={handlePanelPointerDown}
+          onMouseEnter={() => setIsHoveringPanel(true)}
+          onMouseLeave={() => setIsHoveringPanel(false)}
         >
-          {/* Pin button */}
-          <button
-            className="vp-pin-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTogglePin();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
+          {/* Drag indicator - shows on hover when not pinned */}
+          {isHoveringPanel && !isDraggingPanel && !panelState.isPinned && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '-32px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: 'rgba(60, 50, 40, 0.8)',
+                borderRadius: '8px',
+                fontSize: '12px',
+                color: 'rgba(255, 255, 255, 0.9)',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 9l-3 3 3 3" />
+                <path d="M9 5l3-3 3 3" />
+                <path d="M15 19l-3 3-3-3" />
+                <path d="M19 9l3 3-3 3" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <line x1="12" y1="2" x2="12" y2="22" />
+              </svg>
+            </div>
+          )}
+          {/* Pin button with tooltip */}
+          <div
             style={{
               position: 'absolute',
               top: '12px',
               right: '12px',
-              width: '28px',
-              height: '28px',
-              borderRadius: '8px',
-              border: `1px solid ${panelState.isPinned ? 'rgba(60,50,40,0.4)' : 'rgba(60,50,40,0.15)'}`,
-              background: panelState.isPinned ? 'rgba(60,50,40,0.1)' : 'rgba(60,50,40,0.05)',
-              color: panelState.isPinned ? 'rgba(60,50,40,0.9)' : 'rgba(60,50,40,0.5)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              transition: 'all 0.2s ease',
               zIndex: 10,
             }}
-            title={panelState.isPinned ? 'Unpin window' : 'Pin to view'}
+            onMouseEnter={() => setShowPinTooltip(true)}
+            onMouseLeave={() => setShowPinTooltip(false)}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {/* Tooltip */}
+            {showPinTooltip && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: '0',
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: 'rgba(60, 50, 40, 0.9)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'none',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                }}
+              >
+                {panelState.isPinned 
+                  ? 'Unpin: panel stays in place when you look around' 
+                  : 'Pin: panel follows your view'}
+              </div>
+            )}
+            <button
+              className="vp-pin-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTogglePin();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '10px',
+                border: `1.5px solid ${panelState.isPinned ? 'rgba(60,50,40,0.5)' : 'rgba(60,50,40,0.2)'}`,
+                background: panelState.isPinned ? 'rgba(60,50,40,0.15)' : 'rgba(60,50,40,0.05)',
+                color: panelState.isPinned ? 'rgba(60,50,40,0.95)' : 'rgba(60,50,40,0.5)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                transition: 'all 0.2s ease',
+              }}
+            >
               {panelState.isPinned ? (
-                <>
-                  <line x1="12" y1="17" x2="12" y2="22" />
-                  <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
-                </>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M12 1v4" />
+                  <path d="M12 19v4" />
+                  <path d="M1 12h4" />
+                  <path d="M19 12h4" />
+                </svg>
               ) : (
-                <>
-                  <line x1="2" y1="2" x2="22" y2="22" />
-                  <line x1="12" y1="17" x2="12" y2="22" />
-                  <path d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1" />
-                </>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M12 8v8" />
+                  <path d="M8 12h8" />
+                </svg>
               )}
-            </svg>
-          </button>
+            </button>
+          </div>
 
           {/* Panel content */}
           <div 
@@ -890,6 +967,49 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             )}
           </div>
         </div>
+      )}
+
+      {/* Snap back to center button */}
+      {!isLoading && isPanelFarFromCenter && (
+        <button
+          onClick={handleSnapToCenter}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 20px',
+            background: 'rgba(40, 40, 40, 0.45)',
+            backdropFilter: 'blur(40px) saturate(1.4)',
+            WebkitBackdropFilter: 'blur(40px) saturate(1.4)',
+            borderRadius: '14px',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0.5px 0 rgba(255, 255, 255, 0.12)',
+            color: 'rgba(255, 255, 255, 0.85)',
+            fontSize: '14px',
+            fontWeight: 400,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(50, 50, 50, 0.55)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(40, 40, 40, 0.45)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          Recenter
+        </button>
       )}
 
       {/* Contact Widget */}
