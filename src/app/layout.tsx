@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +12,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Kevin Sun",
-  description: "Personal website of Kevin Sun - Software Engineer",
+  description: "Personal website of Kevin Sun",
+  icons: {
+    icon: [
+      { url: "/avatar.jpg", type: "image/jpeg" },
+    ],
+    apple: [
+      { url: "/avatar.jpg", type: "image/jpeg" },
+    ],
+    shortcut: "/avatar.jpg",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
         {children}
       </body>

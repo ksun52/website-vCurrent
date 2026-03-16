@@ -259,9 +259,10 @@ body {
 }
 
 .vp-name {
+  font-family: var(--font-playfair), Georgia, serif;
   font-size: 2.8rem;
-  font-weight: 300;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: rgba(60, 50, 40, 0.95);
   margin-bottom: 0.5rem;
 }
@@ -275,10 +276,10 @@ body {
 }
 
 .vp-divider {
-  width: 40px;
+  width: 25%;
   height: 1px;
   background: rgba(60, 50, 40, 0.2);
-  margin: 24px auto;
+  margin: 24px 0;
 }
 
 .vp-description {
@@ -300,9 +301,9 @@ body {
 
 /* 3D Positioned Hero Panel */
 .vp-hero-panel-3d {
-  text-align: center;
-  padding: 56px 72px;
-  max-width: 520px;
+  text-align: left;
+  padding: 36px 44px;
+  max-width: 900px;
   width: 90vw;
   background: #f4ead5;
   border-radius: 28px;
@@ -319,8 +320,9 @@ body {
 }
 
 .vp-hero-panel-3d .vp-panel-content {
-  pointer-events: none;
-  user-select: none;
+  pointer-events: auto;
+  user-select: text;
+  cursor: text;
 }
 
 .vp-pin-btn:hover {

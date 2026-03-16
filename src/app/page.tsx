@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import VisionProEnvironment from '@/components/VisionProEnvironment';
 
-type PanelType = 'home' | 'about' | 'experience' | 'skills' | 'contact';
+type PanelType = 'home' | 'about' | 'experience' | 'fun';
 
 const navItems: { label: string; panel: PanelType }[] = [
   { label: 'Home', panel: 'home' },
   { label: 'About', panel: 'about' },
   { label: 'Experience', panel: 'experience' },
-  { label: 'Skills', panel: 'skills' },
-  { label: 'Contact', panel: 'contact' },
+  { label: 'Fun & Projects', panel: 'fun' },
 ];
 
 export default function Home() {
