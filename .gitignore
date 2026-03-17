@@ -25,7 +25,6 @@
 *.pem
 
 # large assets
-public/panorama*
 public/old/
 
 # debug
