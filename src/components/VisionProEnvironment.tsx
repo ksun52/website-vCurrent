@@ -143,7 +143,7 @@ const panelContent: Record<PanelType, { title: string; subtitle?: string; conten
     content: '',
   },
   fun: {
-    title: 'Fun & Projects',
+    title: 'Misc',
     subtitle: 'some other interesting stuff I\'ve worked on',
     content: '',
   },
@@ -219,6 +219,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     });
     setIsHoveringPanel(false);
     setIsDraggingPanel(false);
+  }, [isSmallScreen]);
+
+  useEffect(() => {
+    setIsContactExpanded(isSmallScreen);
   }, [isSmallScreen]);
 
   // Close contact widget when clicking outside
@@ -521,7 +525,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     return 'transform 0.4s cubic-bezier(0.4, 0, 1, 1), opacity 0.3s ease';
   };
 
-  const isContactOpen = isSmallScreen || isContactExpanded;
+  const isContactOpen = isContactExpanded;
   const panelContentStyle = isSmallScreen
     ? {
         maxHeight: '68vh',
@@ -764,7 +768,14 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
               )}
             </div>
             {currentContent.subtitle && (
-              <p className="vp-title">{currentContent.subtitle}</p>
+              <p
+                className="vp-title"
+                style={displayedPanel === 'fun'
+                  ? { marginTop: '16px', marginBottom: '28px' }
+                  : undefined}
+              >
+                {currentContent.subtitle}
+              </p>
             )}
             {displayedPanel !== 'experience' && displayedPanel !== 'fun' && <div className="vp-divider" />}
             
@@ -885,8 +896,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
                     {experienceData.map((exp, idx) => (
                       <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {/* Header row: Company + Date */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
+                        {/* Header block: Company + Date */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
                           <h3 style={{
                             margin: 0,
                             fontSize: '18px',
@@ -900,7 +911,6 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                             fontSize: '16px',
                             fontWeight: 500,
                             color: 'rgba(60,50,40,0.5)',
-                            whiteSpace: 'nowrap',
                           }}>
                             {exp.date}
                           </span>
@@ -1108,11 +1118,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             gap: '12px',
             cursor: 'pointer',
           }}
-          onClick={() => {
-            if (!isSmallScreen) {
-              setIsContactExpanded(!isContactExpanded);
-            }
-          }}
+          onClick={() => setIsContactExpanded(!isContactExpanded)}
         >
           {/* Speech bubble */}
           <div
