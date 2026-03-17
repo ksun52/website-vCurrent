@@ -162,6 +162,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const [animationState, setAnimationState] = useState<'visible' | 'exiting' | 'entering'>('visible');
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const contactWidgetRef = useRef<HTMLDivElement>(null);
   const textureLoadedRef = useRef(false);
   const minTimePassedRef = useRef(false);
@@ -192,26 +193,49 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     }
   }, [activePanel, displayedPanel, isTransitioning]);
 
+  useEffect(() => {
+    const updateIsSmallScreen = () => {
+      setIsSmallScreen(window.innerWidth <= 768);
+    };
+
+    updateIsSmallScreen();
+    window.addEventListener('resize', updateIsSmallScreen);
+
+    return () => {
+      window.removeEventListener('resize', updateIsSmallScreen);
+    };
+  }, []);
+
   // Close contact widget when clicking outside
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: PointerEvent) => {
       if (contactWidgetRef.current && !contactWidgetRef.current.contains(e.target as Node)) {
         setIsContactExpanded(false);
       }
     };
 
     if (isContactExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('pointerdown', handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside);
     };
   }, [isContactExpanded]);
 
   useEffect(() => {
     if (!mountRef.current) return;
     const container = mountRef.current;
+    const previousBodyOverscrollBehavior = document.body.style.overscrollBehavior;
+    const previousDocumentOverscrollBehavior = document.documentElement.style.overscrollBehavior;
+    const previousBodyOverscrollBehaviorY = document.body.style.overscrollBehaviorY;
+    const previousDocumentOverscrollBehaviorY = document.documentElement.style.overscrollBehaviorY;
+
+    container.style.touchAction = 'none';
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.body.style.overscrollBehaviorY = 'none';
+    document.documentElement.style.overscrollBehaviorY = 'none';
 
     const scene = new THREE.Scene();
 
@@ -267,6 +291,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     let targetLat = 0;
 
     const onDown = (e: PointerEvent) => {
+      e.preventDefault();
       pointerDown = true;
       prevX = e.clientX;
       prevY = e.clientY;
@@ -276,6 +301,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
 
     const onMove = (e: PointerEvent) => {
       if (!pointerDown) return;
+      e.preventDefault();
       targetLon -= (e.clientX - prevX) * 0.15;
       targetLat += (e.clientY - prevY) * 0.15;
       targetLat = Math.max(-85, Math.min(85, targetLat));
@@ -341,6 +367,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('resize', onResize);
+      container.style.touchAction = '';
+      document.body.style.overscrollBehavior = previousBodyOverscrollBehavior;
+      document.documentElement.style.overscrollBehavior = previousDocumentOverscrollBehavior;
+      document.body.style.overscrollBehaviorY = previousBodyOverscrollBehaviorY;
+      document.documentElement.style.overscrollBehaviorY = previousDocumentOverscrollBehaviorY;
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -469,6 +500,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     }
     return 'transform 0.4s cubic-bezier(0.4, 0, 1, 1), opacity 0.3s ease';
   };
+
+  const isCompactContactBubble = isSmallScreen && !isContactExpanded;
 
   return (
     <>
@@ -1033,10 +1066,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             style={{
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
-              borderRadius: '18px',
-              padding: isContactExpanded ? '20px' : '12px 18px',
+              borderRadius: isCompactContactBubble ? '14px' : '18px',
+              padding: isContactExpanded ? '20px' : isCompactContactBubble ? '8px 12px' : '12px 18px',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              maxWidth: isContactExpanded ? '260px' : '170px',
+              maxWidth: isContactExpanded ? '260px' : isCompactContactBubble ? '112px' : '170px',
               transition: 'all 0.3s ease, box-shadow 0.2s ease',
               position: 'relative',
             }}
@@ -1046,14 +1079,17 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             <p
               style={{
                 margin: 0,
-                fontSize: isContactExpanded ? '15px' : '15px',
+                fontSize: isCompactContactBubble ? '13px' : '15px',
                 color: '#333',
                 lineHeight: 1.5,
+                whiteSpace: isCompactContactBubble ? 'nowrap' : 'normal',
               }}
             >
-              {isContactExpanded 
+              {isContactExpanded
                 ? "Let's connect! Add me on socials or shoot me an email!"
-                : "Want to reach me?"
+                : isSmallScreen
+                  ? 'Contact me here!'
+                  : 'Want to reach me?'
               }
             </p>
             
