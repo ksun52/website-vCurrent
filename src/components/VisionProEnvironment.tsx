@@ -500,8 +500,26 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     }
     return 'transform 0.4s cubic-bezier(0.4, 0, 1, 1), opacity 0.3s ease';
   };
-
-  const isCompactContactBubble = isSmallScreen && !isContactExpanded;
+  
+  const mobilePanelContentMaxHeight = 'calc(52vh - 44px)';
+  const panelContentStyle = isSmallScreen
+    ? {
+        maxHeight: mobilePanelContentMaxHeight,
+        overflowY: 'auto' as const,
+        paddingRight: '10px',
+        marginRight: '-10px',
+        marginTop: '8px',
+        touchAction: 'pan-y' as const,
+      }
+    : displayedPanel === 'experience'
+      ? {
+          maxHeight: '60vh',
+          overflowY: 'auto' as const,
+          paddingRight: '24px',
+          marginRight: '-24px',
+          marginTop: '8px',
+        }
+      : {};
 
   return (
     <>
@@ -591,6 +609,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             transition: getAnimationTransition(),
             outline: isHoveringPanel && !isDraggingPanel && !panelState.isPinned ? '2px solid rgba(60, 50, 40, 0.15)' : 'none',
             outlineOffset: '4px',
+            width: isSmallScreen ? '76vw' : undefined,
+            maxWidth: isSmallScreen ? '420px' : undefined,
+            padding: isSmallScreen ? '22px 20px' : undefined,
+            borderRadius: isSmallScreen ? '22px' : undefined,
+            overflow: isSmallScreen ? 'hidden' : undefined,
           }}
           onPointerDown={handlePanelPointerDown}
           onMouseEnter={() => setIsHoveringPanel(true)}
@@ -703,24 +726,18 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
           {/* Panel content */}
           <div 
             className="vp-panel-content" 
-            style={displayedPanel === 'experience' ? { 
-              maxHeight: '60vh', 
-              overflowY: 'auto',
-              paddingRight: '24px',
-              marginRight: '-24px',
-              marginTop: '8px',
-            } : {}}
+            style={panelContentStyle}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
-              <h1 className="vp-name" style={{ margin: 0 }}>{currentContent.title}</h1>
+            <div style={{ display: 'flex', alignItems: isSmallScreen ? 'flex-start' : 'center', justifyContent: 'space-between', flexDirection: isSmallScreen && displayedPanel === 'about' ? 'column' : 'row', gap: isSmallScreen ? '12px' : '20px' }}>
+              <h1 className="vp-name" style={{ margin: 0, fontSize: isSmallScreen ? '2.1rem' : undefined }}>{currentContent.title}</h1>
               {displayedPanel === 'about' && (
                 <img 
                   src="/avatar.jpg" 
                   alt="Kevin Sun"
                   style={{
-                    width: '112px',
-                    height: '112px',
+                    width: isSmallScreen ? '80px' : '112px',
+                    height: isSmallScreen ? '80px' : '112px',
                     borderRadius: '50%',
                     objectFit: 'cover',
                     flexShrink: 0,
@@ -729,7 +746,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
               )}
             </div>
             {currentContent.subtitle && (
-              <p className="vp-title">{currentContent.subtitle}</p>
+              <p className="vp-title" style={{ fontSize: isSmallScreen ? '0.72rem' : undefined, letterSpacing: isSmallScreen ? '0.18em' : undefined }}>{currentContent.subtitle}</p>
             )}
             {displayedPanel !== 'experience' && displayedPanel !== 'fun' && <div className="vp-divider" />}
             
@@ -738,9 +755,9 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '32px',
-                maxHeight: '320px',
-                overflowY: 'auto',
-                paddingRight: '8px',
+                maxHeight: isSmallScreen ? 'none' : '320px',
+                overflowY: isSmallScreen ? 'visible' : 'auto',
+                paddingRight: isSmallScreen ? '0' : '8px',
               }}>
                 {funProjectsData.map((project, idx) => {
                   const isImageLeft = idx % 2 === 1;
@@ -749,8 +766,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                       key={idx} 
                       style={{ 
                         display: 'flex', 
-                        flexDirection: isImageLeft ? 'row-reverse' : 'row',
-                        gap: '24px',
+                        flexDirection: isSmallScreen ? 'column' : isImageLeft ? 'row-reverse' : 'row',
+                        gap: isSmallScreen ? '14px' : '24px',
                         alignItems: project.bullets ? 'flex-start' : 'center',
                         minHeight: '120px',
                         flexShrink: 0,
@@ -800,8 +817,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                       </div>
                       
                       <div style={{
-                        width: '160px',
-                        height: '120px',
+                        width: isSmallScreen ? '100%' : '160px',
+                        height: isSmallScreen ? '160px' : '120px',
                         borderRadius: '12px',
                         background: 'rgba(60,50,40,0.08)',
                         flexShrink: 0,
@@ -996,7 +1013,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 </div>
               </div>
             ) : (
-              <p className="vp-description" style={{ whiteSpace: 'pre-line' }}>{currentContent.content}</p>
+              <p className="vp-description" style={{ whiteSpace: 'pre-line', fontSize: isSmallScreen ? '0.88rem' : undefined, lineHeight: isSmallScreen ? 1.7 : undefined }}>{currentContent.content}</p>
             )}
           </div>
         </div>
@@ -1062,49 +1079,47 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
           onClick={() => setIsContactExpanded(!isContactExpanded)}
         >
           {/* Speech bubble */}
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: isCompactContactBubble ? '14px' : '18px',
-              padding: isContactExpanded ? '20px' : isCompactContactBubble ? '8px 12px' : '12px 18px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-              maxWidth: isContactExpanded ? '260px' : isCompactContactBubble ? '112px' : '170px',
-              transition: 'all 0.3s ease, box-shadow 0.2s ease',
-              position: 'relative',
-            }}
-            onMouseEnter={(e) => !isContactExpanded && (e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.2)')}
-            onMouseLeave={(e) => !isContactExpanded && (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)')}
-          >
-            <p
-              style={{
-                margin: 0,
-                fontSize: isCompactContactBubble ? '13px' : '15px',
-                color: '#333',
-                lineHeight: 1.5,
-                whiteSpace: isCompactContactBubble ? 'nowrap' : 'normal',
-              }}
-            >
-              {isContactExpanded
-                ? "Let's connect! Add me on socials or shoot me an email!"
-                : isSmallScreen
-                  ? 'Contact me here!'
-                  : 'Want to reach me?'
-              }
-            </p>
-            
-            {/* Social links */}
+          {(!isSmallScreen || isContactExpanded) && (
             <div
               style={{
-                display: 'flex',
-                gap: '14px',
-                marginTop: isContactExpanded ? '18px' : '0',
-                maxHeight: isContactExpanded ? '40px' : '0',
-                opacity: isContactExpanded ? 1 : 0,
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '18px',
+                padding: isContactExpanded ? '20px' : '12px 18px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                maxWidth: isContactExpanded ? '260px' : '170px',
+                transition: 'all 0.3s ease, box-shadow 0.2s ease',
+                position: 'relative',
               }}
+              onMouseEnter={(e) => !isContactExpanded && (e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.2)')}
+              onMouseLeave={(e) => !isContactExpanded && (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)')}
             >
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '15px',
+                  color: '#333',
+                  lineHeight: 1.5,
+                }}
+              >
+                {isContactExpanded 
+                  ? "Let's connect! Add me on socials or shoot me an email!"
+                  : "Want to reach me?"
+                }
+              </p>
+              
+              {/* Social links */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '14px',
+                  marginTop: isContactExpanded ? '18px' : '0',
+                  maxHeight: isContactExpanded ? '40px' : '0',
+                  opacity: isContactExpanded ? 1 : 0,
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                }}
+              >
               {/* Instagram */}
               <a
                 href="https://instagram.com/itskev.dev"
@@ -1177,22 +1192,23 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                   <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
                 </svg>
               </a>
+              </div>
+              
+              {/* Speech bubble tail */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '12px',
+                  right: '-8px',
+                  width: 0,
+                  height: 0,
+                  borderTop: '8px solid transparent',
+                  borderBottom: '8px solid transparent',
+                  borderLeft: '8px solid rgba(255, 255, 255, 0.95)',
+                }}
+              />
             </div>
-            
-            {/* Speech bubble tail */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '12px',
-                right: '-8px',
-                width: 0,
-                height: 0,
-                borderTop: '8px solid transparent',
-                borderBottom: '8px solid transparent',
-                borderLeft: '8px solid rgba(255, 255, 255, 0.95)',
-              }}
-            />
-          </div>
+          )}
           
           {/* Person icon / Avatar */}
           <div
