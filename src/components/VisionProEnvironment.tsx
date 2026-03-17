@@ -206,8 +206,25 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     };
   }, []);
 
+  useEffect(() => {
+    if (!isSmallScreen) return;
+
+    isPinnedRef.current = true;
+    panelLonRef.current = cameraLonRef.current;
+    panelLatRef.current = cameraLatRef.current;
+    setPanelState({
+      panelLon: cameraLonRef.current,
+      panelLat: cameraLatRef.current,
+      isPinned: true,
+    });
+    setIsHoveringPanel(false);
+    setIsDraggingPanel(false);
+  }, [isSmallScreen]);
+
   // Close contact widget when clicking outside
   useEffect(() => {
+    if (isSmallScreen) return;
+
     const handleClickOutside = (e: PointerEvent) => {
       if (contactWidgetRef.current && !contactWidgetRef.current.contains(e.target as Node)) {
         setIsContactExpanded(false);
@@ -221,7 +238,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     return () => {
       document.removeEventListener('pointerdown', handleClickOutside);
     };
-  }, [isContactExpanded]);
+  }, [isContactExpanded, isSmallScreen]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -382,6 +399,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const panelDragStart = useRef<{ startX: number; startY: number; startLon: number; startLat: number } | null>(null);
 
   const handlePanelPointerDown = useCallback((e: React.PointerEvent) => {
+    if (isSmallScreen) return;
     e.stopPropagation();
     setIsDraggingPanel(true);
     panelDragStart.current = {
@@ -392,7 +410,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     };
     document.body.style.cursor = 'grabbing';
     document.body.style.userSelect = 'none';
-  }, []);
+  }, [isSmallScreen]);
 
   useEffect(() => {
     if (!isDraggingPanel) return;
@@ -434,6 +452,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   }, [isDraggingPanel]);
 
   const handleTogglePin = useCallback(() => {
+    if (isSmallScreen) return;
+
     const newPinned = !isPinnedRef.current;
     isPinnedRef.current = newPinned;
     
@@ -444,7 +464,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     } else {
       setPanelState(prev => ({ ...prev, isPinned: false }));
     }
-  }, []);
+  }, [isSmallScreen]);
 
   const handleSnapToCenter = useCallback(() => {
     panelLonRef.current = cameraLonRef.current;
@@ -500,14 +520,14 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     }
     return 'transform 0.4s cubic-bezier(0.4, 0, 1, 1), opacity 0.3s ease';
   };
-  
-  const mobilePanelContentMaxHeight = 'calc(52vh - 44px)';
+
+  const isContactOpen = isSmallScreen || isContactExpanded;
   const panelContentStyle = isSmallScreen
     ? {
-        maxHeight: mobilePanelContentMaxHeight,
+        maxHeight: '68vh',
         overflowY: 'auto' as const,
-        paddingRight: '10px',
-        marginRight: '-10px',
+        paddingRight: '12px',
+        marginRight: '-12px',
         marginTop: '8px',
         touchAction: 'pan-y' as const,
       }
@@ -603,24 +623,20 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             left: `calc(50% + ${screenX}%)`,
             zIndex: 90,
             pointerEvents: 'auto',
-            cursor: isDraggingPanel ? 'grabbing' : 'grab',
+            cursor: isSmallScreen ? 'default' : isDraggingPanel ? 'grabbing' : 'grab',
             transform: getAnimationTransform(),
             opacity: getAnimationOpacity(),
             transition: getAnimationTransition(),
-            outline: isHoveringPanel && !isDraggingPanel && !panelState.isPinned ? '2px solid rgba(60, 50, 40, 0.15)' : 'none',
+            outline: !isSmallScreen && isHoveringPanel && !isDraggingPanel && !panelState.isPinned ? '2px solid rgba(60, 50, 40, 0.15)' : 'none',
             outlineOffset: '4px',
-            width: isSmallScreen ? '76vw' : undefined,
-            maxWidth: isSmallScreen ? '420px' : undefined,
-            padding: isSmallScreen ? '22px 20px' : undefined,
-            borderRadius: isSmallScreen ? '22px' : undefined,
-            overflow: isSmallScreen ? 'hidden' : undefined,
+            width: isSmallScreen ? '92vw' : undefined,
           }}
-          onPointerDown={handlePanelPointerDown}
-          onMouseEnter={() => setIsHoveringPanel(true)}
-          onMouseLeave={() => setIsHoveringPanel(false)}
+          onPointerDown={isSmallScreen ? undefined : handlePanelPointerDown}
+          onMouseEnter={isSmallScreen ? undefined : () => setIsHoveringPanel(true)}
+          onMouseLeave={isSmallScreen ? undefined : () => setIsHoveringPanel(false)}
         >
           {/* Drag indicator - shows on hover when not pinned */}
-          {isHoveringPanel && !isDraggingPanel && !panelState.isPinned && (
+          {!isSmallScreen && isHoveringPanel && !isDraggingPanel && !panelState.isPinned && (
             <div
               style={{
                 position: 'absolute',
@@ -650,78 +666,80 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             </div>
           )}
           {/* Pin button with tooltip */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              zIndex: 10,
-            }}
-            onMouseEnter={() => setShowPinTooltip(true)}
-            onMouseLeave={() => setShowPinTooltip(false)}
-          >
-            {/* Tooltip */}
-            {showPinTooltip && (
-              <div
+          {!isSmallScreen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                zIndex: 10,
+              }}
+              onMouseEnter={() => setShowPinTooltip(true)}
+              onMouseLeave={() => setShowPinTooltip(false)}
+            >
+              {/* Tooltip */}
+              {showPinTooltip && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: '0',
+                    marginTop: '8px',
+                    padding: '8px 12px',
+                    background: 'rgba(60, 50, 40, 0.9)',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    whiteSpace: 'nowrap',
+                    pointerEvents: 'none',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  {panelState.isPinned 
+                    ? 'Unpin: panel stays in place when you look around' 
+                    : 'Pin: panel follows your view'}
+                </div>
+              )}
+              <button
+                className="vp-pin-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTogglePin();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: '0',
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  background: 'rgba(60, 50, 40, 0.9)',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  color: 'rgba(255, 255, 255, 0.95)',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'none',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  border: `1.5px solid ${panelState.isPinned ? 'rgba(60,50,40,0.5)' : 'rgba(60,50,40,0.2)'}`,
+                  background: panelState.isPinned ? 'rgba(60,50,40,0.15)' : 'rgba(60,50,40,0.05)',
+                  color: panelState.isPinned ? 'rgba(60,50,40,0.95)' : 'rgba(60,50,40,0.5)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
                 }}
               >
-                {panelState.isPinned 
-                  ? 'Unpin: panel stays in place when you look around' 
-                  : 'Pin: panel follows your view'}
-              </div>
-            )}
-            <button
-              className="vp-pin-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTogglePin();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '10px',
-                border: `1.5px solid ${panelState.isPinned ? 'rgba(60,50,40,0.5)' : 'rgba(60,50,40,0.2)'}`,
-                background: panelState.isPinned ? 'rgba(60,50,40,0.15)' : 'rgba(60,50,40,0.05)',
-                color: panelState.isPinned ? 'rgba(60,50,40,0.95)' : 'rgba(60,50,40,0.5)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {panelState.isPinned ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M12 1v4" />
-                  <path d="M12 19v4" />
-                  <path d="M1 12h4" />
-                  <path d="M19 12h4" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <path d="M12 8v8" />
-                  <path d="M8 12h8" />
-                </svg>
-              )}
-            </button>
-          </div>
+                {panelState.isPinned ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 1v4" />
+                    <path d="M12 19v4" />
+                    <path d="M1 12h4" />
+                    <path d="M19 12h4" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M12 8v8" />
+                    <path d="M8 12h8" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Panel content */}
           <div 
@@ -730,14 +748,14 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             onPointerDown={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: isSmallScreen ? 'flex-start' : 'center', justifyContent: 'space-between', flexDirection: isSmallScreen && displayedPanel === 'about' ? 'column' : 'row', gap: isSmallScreen ? '12px' : '20px' }}>
-              <h1 className="vp-name" style={{ margin: 0, fontSize: isSmallScreen ? '2.1rem' : undefined }}>{currentContent.title}</h1>
+              <h1 className="vp-name" style={{ margin: 0 }}>{currentContent.title}</h1>
               {displayedPanel === 'about' && (
                 <img 
                   src="/avatar.jpg" 
                   alt="Kevin Sun"
                   style={{
-                    width: isSmallScreen ? '80px' : '112px',
-                    height: isSmallScreen ? '80px' : '112px',
+                    width: isSmallScreen ? '96px' : '112px',
+                    height: isSmallScreen ? '96px' : '112px',
                     borderRadius: '50%',
                     objectFit: 'cover',
                     flexShrink: 0,
@@ -746,7 +764,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
               )}
             </div>
             {currentContent.subtitle && (
-              <p className="vp-title" style={{ fontSize: isSmallScreen ? '0.72rem' : undefined, letterSpacing: isSmallScreen ? '0.18em' : undefined }}>{currentContent.subtitle}</p>
+              <p className="vp-title">{currentContent.subtitle}</p>
             )}
             {displayedPanel !== 'experience' && displayedPanel !== 'fun' && <div className="vp-divider" />}
             
@@ -755,7 +773,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '32px',
-                maxHeight: isSmallScreen ? 'none' : '320px',
+                maxHeight: isSmallScreen ? 'unset' : '320px',
                 overflowY: isSmallScreen ? 'visible' : 'auto',
                 paddingRight: isSmallScreen ? '0' : '8px',
               }}>
@@ -1013,7 +1031,21 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 </div>
               </div>
             ) : (
-              <p className="vp-description" style={{ whiteSpace: 'pre-line', fontSize: isSmallScreen ? '0.88rem' : undefined, lineHeight: isSmallScreen ? 1.7 : undefined }}>{currentContent.content}</p>
+              <>
+                <p className="vp-description" style={{ whiteSpace: 'pre-line' }}>{currentContent.content}</p>
+                {displayedPanel === 'home' && isSmallScreen && (
+                  <p
+                    style={{
+                      margin: '24px 0 0 0',
+                      fontSize: '0.9rem',
+                      color: 'rgba(60,50,40,0.58)',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    View on desktop for a 3D experience!
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -1076,50 +1108,53 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             gap: '12px',
             cursor: 'pointer',
           }}
-          onClick={() => setIsContactExpanded(!isContactExpanded)}
+          onClick={() => {
+            if (!isSmallScreen) {
+              setIsContactExpanded(!isContactExpanded);
+            }
+          }}
         >
           {/* Speech bubble */}
-          {(!isSmallScreen || isContactExpanded) && (
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '18px',
+              padding: isContactOpen ? '20px' : '12px 18px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              maxWidth: isContactOpen ? '260px' : '170px',
+              transition: 'all 0.3s ease, box-shadow 0.2s ease',
+              position: 'relative',
+            }}
+            onMouseEnter={(e) => !isContactOpen && (e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.2)')}
+            onMouseLeave={(e) => !isContactOpen && (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)')}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: '15px',
+                color: '#333',
+                lineHeight: 1.5,
+              }}
+            >
+              {isContactOpen 
+                ? "Let's connect! Add me on socials or shoot me an email!"
+                : "Want to reach me?"
+              }
+            </p>
+            
+            {/* Social links */}
             <div
               style={{
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '18px',
-                padding: isContactExpanded ? '20px' : '12px 18px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                maxWidth: isContactExpanded ? '260px' : '170px',
-                transition: 'all 0.3s ease, box-shadow 0.2s ease',
-                position: 'relative',
+                display: 'flex',
+                gap: '14px',
+                marginTop: isContactOpen ? '18px' : '0',
+                maxHeight: isContactOpen ? '40px' : '0',
+                opacity: isContactOpen ? 1 : 0,
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
               }}
-              onMouseEnter={(e) => !isContactExpanded && (e.currentTarget.style.boxShadow = '0 6px 24px rgba(0, 0, 0, 0.2)')}
-              onMouseLeave={(e) => !isContactExpanded && (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)')}
             >
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '15px',
-                  color: '#333',
-                  lineHeight: 1.5,
-                }}
-              >
-                {isContactExpanded 
-                  ? "Let's connect! Add me on socials or shoot me an email!"
-                  : "Want to reach me?"
-                }
-              </p>
-              
-              {/* Social links */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '14px',
-                  marginTop: isContactExpanded ? '18px' : '0',
-                  maxHeight: isContactExpanded ? '40px' : '0',
-                  opacity: isContactExpanded ? 1 : 0,
-                  overflow: 'hidden',
-                  transition: 'all 0.3s ease',
-                }}
-              >
               {/* Instagram */}
               <a
                 href="https://instagram.com/itskev.dev"
@@ -1192,23 +1227,22 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                   <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
                 </svg>
               </a>
-              </div>
-              
-              {/* Speech bubble tail */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '12px',
-                  right: '-8px',
-                  width: 0,
-                  height: 0,
-                  borderTop: '8px solid transparent',
-                  borderBottom: '8px solid transparent',
-                  borderLeft: '8px solid rgba(255, 255, 255, 0.95)',
-                }}
-              />
             </div>
-          )}
+            
+            {/* Speech bubble tail */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                right: '-8px',
+                width: 0,
+                height: 0,
+                borderTop: '8px solid transparent',
+                borderBottom: '8px solid transparent',
+                borderLeft: '8px solid rgba(255, 255, 255, 0.95)',
+              }}
+            />
+          </div>
           
           {/* Person icon / Avatar */}
           <div
