@@ -153,7 +153,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const mountRef = useRef<HTMLDivElement>(null);
   const [cameraLon, setCameraLon] = useState(0);
   const [cameraLat, setCameraLat] = useState(0);
-  const [panelState, setPanelState] = useState<PanelState>({ panelLon: 0, panelLat: 0, isPinned: false });
+  const [panelState, setPanelState] = useState<PanelState>({ panelLon: 60, panelLat: 0, isPinned: false });
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
   const [isHoveringPanel, setIsHoveringPanel] = useState(false);
   const [showPinTooltip, setShowPinTooltip] = useState(false);
@@ -168,7 +168,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   
   const cameraLonRef = useRef(0);
   const cameraLatRef = useRef(0);
-  const panelLonRef = useRef(0);
+  const panelLonRef = useRef(60);
   const panelLatRef = useRef(0);
   const isPinnedRef = useRef(false);
 
