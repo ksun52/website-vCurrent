@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 
-type PanelType = 'home' | 'about' | 'experience' | 'fun';
+type PanelType = 'home' | 'about' | 'experience' | 'misc';
 
 interface PanelState {
   panelLon: number;
@@ -142,7 +142,7 @@ const panelContent: Record<PanelType, { title: string; subtitle?: string; conten
     title: 'Experience & Education',
     content: '',
   },
-  fun: {
+  misc: {
     title: 'Fun & Projects',
     subtitle: 'some other interesting stuff I\'ve worked on',
     content: '',
@@ -770,16 +770,16 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             {currentContent.subtitle && (
               <p
                 className="vp-title"
-                style={displayedPanel === 'fun'
+                style={displayedPanel === 'misc'
                   ? { marginTop: '16px', marginBottom: '28px' }
                   : undefined}
               >
                 {currentContent.subtitle}
               </p>
             )}
-            {displayedPanel !== 'experience' && displayedPanel !== 'fun' && <div className="vp-divider" />}
+            {displayedPanel !== 'experience' && displayedPanel !== 'misc' && <div className="vp-divider" />}
             
-            {displayedPanel === 'fun' ? (
+            {displayedPanel === 'misc' ? (
               <div style={{ 
                 display: 'flex', 
                 flexDirection: 'column', 
