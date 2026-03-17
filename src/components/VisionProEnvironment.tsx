@@ -221,9 +221,6 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     setIsDraggingPanel(false);
   }, [isSmallScreen]);
 
-  useEffect(() => {
-    setIsContactExpanded(isSmallScreen);
-  }, [isSmallScreen]);
 
   // Close contact widget when clicking outside
   useEffect(() => {
@@ -528,7 +525,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const isContactOpen = isContactExpanded;
   const panelContentStyle = isSmallScreen
     ? {
-        maxHeight: '68vh',
+        maxHeight: '58vh',
         overflowY: 'auto' as const,
         paddingRight: '12px',
         marginRight: '-12px',
@@ -537,7 +534,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
       }
     : displayedPanel === 'experience'
       ? {
-          maxHeight: '60vh',
+          maxHeight: '52vh',
           overflowY: 'auto' as const,
           paddingRight: '24px',
           marginRight: '-24px',
@@ -995,8 +992,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                     Education
                   </h2>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {/* Header row: School + Date */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
+                    {/* Header block: School + Date */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
                       <h3 style={{
                         margin: 0,
                         fontSize: '18px',
@@ -1010,7 +1007,6 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                         fontSize: '16px',
                         fontWeight: 500,
                         color: 'rgba(60,50,40,0.5)',
-                        whiteSpace: 'nowrap',
                       }}>
                         {educationData.date}
                       </span>
