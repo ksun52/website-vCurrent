@@ -143,7 +143,7 @@ const panelContent: Record<PanelType, { title: string; subtitle?: string; conten
     content: '',
   },
   fun: {
-    title: 'Misc',
+    title: 'Fun & Projects',
     subtitle: 'some other interesting stuff I\'ve worked on',
     content: '',
   },
