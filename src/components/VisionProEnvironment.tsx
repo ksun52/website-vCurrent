@@ -164,6 +164,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const [isContactExpanded, setIsContactExpanded] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const contactWidgetRef = useRef<HTMLDivElement>(null);
+  const panelContentRef = useRef<HTMLDivElement>(null);
   const textureLoadedRef = useRef(false);
   const minTimePassedRef = useRef(false);
   
@@ -183,6 +184,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
       setTimeout(() => {
         setDisplayedPanel(activePanel);
         setAnimationState('entering');
+        
+        // Reset scroll position when switching panels
+        if (panelContentRef.current) {
+          panelContentRef.current.scrollTop = 0;
+        }
         
         // After enter animation, set to visible
         setTimeout(() => {
@@ -744,6 +750,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
 
           {/* Panel content */}
           <div 
+            ref={panelContentRef}
             className="vp-panel-content" 
             style={panelContentStyle}
             onPointerDown={(e) => e.stopPropagation()}
