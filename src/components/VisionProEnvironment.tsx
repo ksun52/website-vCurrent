@@ -178,24 +178,30 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   useEffect(() => {
     if (activePanel !== displayedPanel && !isTransitioning) {
       setIsTransitioning(true);
-      setAnimationState('exiting');
 
-      // Overlap animations - switch content quickly
-      setTimeout(() => {
-        setDisplayedPanel(activePanel);
-        setAnimationState('entering');
+      // Snap panel back to center when switching tabs
+      panelLonRef.current = cameraLonRef.current;
+      panelLatRef.current = cameraLatRef.current;
+      setPanelState(prev => ({ ...prev, panelLon: cameraLonRef.current, panelLat: cameraLatRef.current }));
 
-        // Reset scroll position when switching panels
-        if (panelContentRef.current) {
-          panelContentRef.current.scrollTop = 0;
-        }
+      // Immediately swap content and start entering from top
+      setDisplayedPanel(activePanel);
+      setAnimationState('entering');
 
-        // After enter animation, set to visible
-        setTimeout(() => {
+      // Reset scroll position when switching panels
+      if (panelContentRef.current) {
+        panelContentRef.current.scrollTop = 0;
+      }
+
+      // Allow one frame for the entering position to apply, then animate to visible
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
           setAnimationState('visible');
-          setIsTransitioning(false);
-        }, 300);
-      }, 200);
+          setTimeout(() => {
+            setIsTransitioning(false);
+          }, 400);
+        });
+      });
     }
   }, [activePanel, displayedPanel, isTransitioning]);
 
@@ -505,27 +511,23 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
 
   const currentContent = panelContent[displayedPanel];
 
-  // Animation styles - exiting goes down, entering comes from top
+  // Animation styles - new panel enters from top
   const getAnimationTransform = () => {
-    switch (animationState) {
-      case 'exiting':
-        return 'translate(-50%, -50%) translateY(100vh)';
-      case 'entering':
-        return 'translate(-50%, -50%) translateY(-100vh)';
-      default:
-        return 'translate(-50%, -50%)';
+    if (animationState === 'entering') {
+      return 'translate(-50%, -50%) translateY(-100vh)';
     }
+    return 'translate(-50%, -50%)';
   };
 
   const getAnimationOpacity = () => {
-    return animationState === 'visible' ? 1 : 0;
+    return animationState === 'entering' ? 0 : 1;
   };
 
   const getAnimationTransition = () => {
-    if (animationState === 'visible') {
-      return 'transform 0.4s cubic-bezier(0, 0, 0.2, 1), opacity 0.3s ease';
+    if (animationState === 'entering') {
+      return 'none';
     }
-    return 'transform 0.4s cubic-bezier(0.4, 0, 1, 1), opacity 0.3s ease';
+    return 'transform 0.4s cubic-bezier(0, 0, 0.2, 1), opacity 0.3s ease';
   };
 
   const isContactOpen = isContactExpanded;
