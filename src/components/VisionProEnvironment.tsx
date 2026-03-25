@@ -118,14 +118,14 @@ const panelContent: Record<PanelType, { title: string; subtitle?: string; conten
   home: {
     title: 'Kevin Sun',
     subtitle: 'Welcome to my virtual world!',
-    content: 
-      'I\'m currently a software engineer at BCG X in New York City (official title: Forward Deployed AI Engineer). ' + 
-      'I enjoy designing and building reliable, scalable systems that solve real-world problems — and simple tools ' + 
+    content:
+      'I\'m currently a software engineer at BCG X in New York City (official title: Forward Deployed AI Engineer). ' +
+      'I enjoy designing and building reliable, scalable systems that solve real-world problems — and simple tools ' +
       'that make my own life easier. Feel free to poke around and explore my virtual world!'
   },
   about: {
     title: 'About Me',
-    content: 
+    content:
       'Hello! I\'m Kevin, a software engineer based in New York City. As a Forward Deployed AI Engineer ' +
       'at BCG X, I build integrated, end-to-end solutions that maximize impact at scale, helping clients ' +
       'transform their organizations through technology and AI. I\'m passionate about partnering closely ' +
@@ -167,7 +167,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const panelContentRef = useRef<HTMLDivElement>(null);
   const textureLoadedRef = useRef(false);
   const minTimePassedRef = useRef(false);
-  
+
   const cameraLonRef = useRef(0);
   const cameraLatRef = useRef(0);
   const panelLonRef = useRef(60);
@@ -179,17 +179,17 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     if (activePanel !== displayedPanel && !isTransitioning) {
       setIsTransitioning(true);
       setAnimationState('exiting');
-      
+
       // Overlap animations - switch content quickly
       setTimeout(() => {
         setDisplayedPanel(activePanel);
         setAnimationState('entering');
-        
+
         // Reset scroll position when switching panels
         if (panelContentRef.current) {
           panelContentRef.current.scrollTop = 0;
         }
-        
+
         // After enter animation, set to visible
         setTimeout(() => {
           setAnimationState('visible');
@@ -288,7 +288,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
     }, 750);
 
     const loader = new THREE.TextureLoader();
-    loader.load('/panorama.png', (texture) => {
+    loader.load('/panorama.jpeg', (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
@@ -301,7 +301,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
       const material = new THREE.MeshBasicMaterial({ map: texture });
       const sphere = new THREE.Mesh(geometry, material);
       scene.add(sphere);
-      
+
       textureLoadedRef.current = true;
       checkLoadingComplete();
     });
@@ -426,7 +426,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
       if (!panelDragStart.current) return;
       const deltaX = e.clientX - panelDragStart.current.startX;
       const deltaY = e.clientY - panelDragStart.current.startY;
-      
+
       // Convert pixel movement to degrees
       // Screen uses: screenX = (angle / 50) * 50 = angle (in percentage of half-screen)
       // So 1% of screen width = 1 degree roughly
@@ -434,7 +434,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
       // To move 1 pixel, we need: 50 / (window.innerWidth / 2) degrees = 100 / window.innerWidth
       const degPerPixelX = 100 / window.innerWidth;
       const degPerPixelY = 75 / window.innerHeight; // Based on vertical FOV
-      
+
       const newLon = panelDragStart.current.startLon + deltaX * degPerPixelX;
       const newLat = Math.max(-85, Math.min(85, panelDragStart.current.startLat - deltaY * degPerPixelY));
       panelLonRef.current = newLon;
@@ -463,7 +463,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
 
     const newPinned = !isPinnedRef.current;
     isPinnedRef.current = newPinned;
-    
+
     if (newPinned) {
       panelLonRef.current = cameraLonRef.current;
       panelLatRef.current = cameraLatRef.current;
@@ -482,22 +482,22 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const lonDiff = panelState.panelLon - cameraLon;
   const normalizedLonAngle = ((lonDiff % 360) + 540) % 360 - 180;
   const latDiff = panelState.panelLat - cameraLat;
-  
+
   const panelDistance = 100;
   const fovRad = THREE.MathUtils.degToRad(75);
   const lonAngleRad = THREE.MathUtils.degToRad(normalizedLonAngle);
-  
+
   const panelX = Math.sin(lonAngleRad) * panelDistance;
   const panelZ = Math.cos(lonAngleRad) * panelDistance;
-  
+
   const screenHalfWidth = Math.tan(fovRad / 2) * panelZ;
   const screenX = screenHalfWidth > 0 ? (panelX / screenHalfWidth) * 50 : 0;
-  
+
   const verticalFovRad = fovRad;
   const screenY = panelZ > 0 ? (-latDiff / (verticalFovRad * 180 / Math.PI / 2)) * 50 : 0;
-  
+
   const isVisible = panelZ > 0;
-  
+
   // Check if panel is far from center (show snap button when panel is off-screen or nearly off-screen)
   const isPanelFarFromCenter = !panelState.isPinned && (
     Math.abs(screenX) > 40 || Math.abs(screenY) > 35 || !isVisible
@@ -531,21 +531,21 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
   const isContactOpen = isContactExpanded;
   const panelContentStyle = isSmallScreen
     ? {
-        maxHeight: '58vh',
-        overflowY: 'auto' as const,
-        paddingRight: '12px',
-        marginRight: '-12px',
-        marginTop: '8px',
-        touchAction: 'pan-y' as const,
-      }
+      maxHeight: '58vh',
+      overflowY: 'auto' as const,
+      paddingRight: '12px',
+      marginRight: '-12px',
+      marginTop: '8px',
+      touchAction: 'pan-y' as const,
+    }
     : displayedPanel === 'experience'
       ? {
-          maxHeight: '52vh',
-          overflowY: 'auto' as const,
-          paddingRight: '24px',
-          marginRight: '-24px',
-          marginTop: '8px',
-        }
+        maxHeight: '52vh',
+        overflowY: 'auto' as const,
+        paddingRight: '24px',
+        marginRight: '-24px',
+        marginTop: '8px',
+      }
       : {};
 
   return (
@@ -579,7 +579,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
         >
           loading Kevin&apos;s world!
         </p>
-        
+
         {/* Five dots loader */}
         <div
           style={{
@@ -601,7 +601,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
             />
           ))}
         </div>
-        
+
         <style>{`
           @keyframes dotPulse {
             0%, 60%, 100% { 
@@ -620,7 +620,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
         ref={mountRef}
         style={{ position: 'fixed', inset: 0, zIndex: 1 }}
       />
-      
+
       {!isLoading && isVisible && (
         <div
           className="vp-hero-panel-3d"
@@ -702,8 +702,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                   }}
                 >
-                  {panelState.isPinned 
-                    ? 'Unpin: panel stays in place when you look around' 
+                  {panelState.isPinned
+                    ? 'Unpin: panel stays in place when you look around'
                     : 'Pin: panel follows your view'}
                 </div>
               )}
@@ -749,17 +749,17 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
           )}
 
           {/* Panel content */}
-          <div 
+          <div
             ref={panelContentRef}
-            className="vp-panel-content" 
+            className="vp-panel-content"
             style={panelContentStyle}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: isSmallScreen ? 'flex-start' : 'center', justifyContent: 'space-between', flexDirection: isSmallScreen && displayedPanel === 'about' ? 'column' : 'row', gap: isSmallScreen ? '12px' : '20px' }}>
               <h1 className="vp-name" style={{ margin: 0 }}>{currentContent.title}</h1>
               {displayedPanel === 'about' && (
-                <img 
-                  src="/avatar.jpg" 
+                <img
+                  src="/avatar.jpg"
                   alt="Kevin Sun"
                   style={{
                     width: isSmallScreen ? '96px' : '112px',
@@ -782,11 +782,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
               </p>
             )}
             {displayedPanel !== 'experience' && displayedPanel !== 'misc' && <div className="vp-divider" />}
-            
+
             {displayedPanel === 'misc' ? (
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '32px',
                 maxHeight: isSmallScreen ? 'unset' : '320px',
                 overflowY: isSmallScreen ? 'visible' : 'auto',
@@ -795,10 +795,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 {funProjectsData.map((project, idx) => {
                   const isImageLeft = idx % 2 === 1;
                   return (
-                    <div 
-                      key={idx} 
-                      style={{ 
-                        display: 'flex', 
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
                         flexDirection: isSmallScreen ? 'column' : isImageLeft ? 'row-reverse' : 'row',
                         gap: isSmallScreen ? '14px' : '24px',
                         alignItems: project.bullets ? 'flex-start' : 'center',
@@ -829,9 +829,9 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                                 marginBottom: '4px',
                               }}>
                                 {bullet.link ? (
-                                  <a 
-                                    href={bullet.link} 
-                                    target="_blank" 
+                                  <a
+                                    href={bullet.link}
+                                    target="_blank"
                                     rel="noopener noreferrer"
                                     style={{
                                       color: 'rgba(60,50,40,0.8)',
@@ -848,7 +848,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                           </ul>
                         )}
                       </div>
-                      
+
                       <div style={{
                         width: isSmallScreen ? '100%' : '160px',
                         height: isSmallScreen ? '160px' : '120px',
@@ -861,8 +861,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                         overflow: 'hidden',
                       }}>
                         {project.image ? (
-                          <img 
-                            src={project.image} 
+                          <img
+                            src={project.image}
                             alt="Project"
                             style={{
                               width: '100%',
@@ -919,7 +919,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                             {exp.date}
                           </span>
                         </div>
-                        
+
                         {/* Subheader: Position */}
                         <span style={{
                           fontSize: '16px',
@@ -929,7 +929,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                         }}>
                           {exp.position}
                         </span>
-                        
+
                         {/* Main description */}
                         <p style={{
                           margin: 0,
@@ -940,11 +940,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                         }}>
                           {exp.bullet}
                         </p>
-                        
+
                         {/* Sub-items for BCG X */}
                         {exp.subItems && (
-                          <div style={{ 
-                            marginTop: '24px', 
+                          <div style={{
+                            marginTop: '24px',
                             marginLeft: '10px',
                             paddingLeft: '12px',
                             borderLeft: '2px solid rgba(60,50,40,0.12)',
@@ -1018,7 +1018,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                         {educationData.date}
                       </span>
                     </div>
-                    
+
                     {/* Degrees */}
                     {educationData.degrees.map((deg, idx) => (
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
@@ -1146,12 +1146,12 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 lineHeight: 1.5,
               }}
             >
-              {isContactOpen 
+              {isContactOpen
                 ? "Let's connect! Add me on socials or shoot me an email!"
                 : "Want to reach me?"
               }
             </p>
-            
+
             {/* Social links */}
             <div
               style={{
@@ -1175,10 +1175,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                 </svg>
               </a>
-              
+
               {/* Twitter/X */}
               <a
                 href="https://twitter.com/a_kevin_sun"
@@ -1190,10 +1190,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
-              
+
               {/* LinkedIn */}
               <a
                 href="https://linkedin.com/in/krsun/"
@@ -1205,10 +1205,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
               </a>
-              
+
               {/* GitHub */}
               <a
                 href="https://github.com/ksun52"
@@ -1220,10 +1220,10 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                 </svg>
               </a>
-              
+
               {/* Email */}
               <a
                 href="mailto:ksun52.99@gmail.com"
@@ -1233,11 +1233,11 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
+                  <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />
                 </svg>
               </a>
             </div>
-            
+
             {/* Speech bubble tail */}
             <div
               style={{
@@ -1252,7 +1252,7 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
               }}
             />
           </div>
-          
+
           {/* Person icon / Avatar */}
           <div
             style={{
@@ -1278,8 +1278,8 @@ export default function VisionProEnvironment({ activePanel, onPanelChange }: Vis
               e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
             }}
           >
-            <img 
-              src="/avatar.jpg" 
+            <img
+              src="/avatar.jpg"
               alt="Kevin Sun"
               style={{
                 width: '100%',
