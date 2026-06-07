@@ -31,9 +31,13 @@ const experienceData: ExperienceItem[] = [
   {
     company: 'BCG X',
     date: 'Sep 2025 - Present',
-    position: 'Forward Deployed AI Engineer',
+    position: 'Software Engineer',
     bullet: 'Build and deploy production-grade full-stack applications and cloud infrastructure for Fortune 500 clients, specializing in GenAI systems, data pipelines, and AWS/Azure environments.',
     subItems: [
+      {
+        title: 'Grocery Retail Client',
+        bullet: 'Built a full-stack platform that flags out-of-stock risk on products, pairing PySpark pipelines that consolidate terabytes of scattered supply-chain data into clean business metrics with a webapp that displays actionable views for clients.',
+      },
       {
         title: 'Federal Government Client',
         bullet: 'Architected cloud infrastructure and data platforms for a secure multitenant federal system in AWS GovCloud, enabling tenant-isolated data access, role-based authorization, document storage systems, automated schema evolution, and CI/CD pipelines to build, test, and deploy application and infrastructure services.',
@@ -119,15 +123,15 @@ const panelContent: Record<PanelType, { title: string; subtitle?: string; conten
     title: 'Kevin Sun',
     subtitle: 'Welcome to my virtual world!',
     content:
-      'I\'m currently a software engineer at BCG X in New York City (official title: Forward Deployed AI Engineer). ' +
+      'I\'m currently a software engineer at BCG X in New York City. ' +
       'I enjoy designing and building reliable, scalable systems that solve real-world problems — and simple tools ' +
       'that make my own life easier. Feel free to poke around and explore my virtual world!'
   },
   about: {
     title: 'About Me',
     content:
-      'Hello! I\'m Kevin, a software engineer based in New York City. As a Forward Deployed AI Engineer ' +
-      'at BCG X, I build integrated, end-to-end solutions that maximize impact at scale, helping clients ' +
+      'Hello! I\'m Kevin, a software engineer based in New York City working at BCG X (the Boston Consulting Group\'s tech arm). ' +
+      'I build integrated, end-to-end solutions that maximize impact at scale, helping clients ' +
       'transform their organizations through technology and AI. I\'m passionate about partnering closely ' +
       'with clients to understand the root of their challenges and deliver highly tailored solutions.\n\n' +
       'My recent projects include an application for resort companies to track organizational hierarchy and ' +
